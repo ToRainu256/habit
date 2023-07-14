@@ -1,0 +1,38 @@
+import numpy as np
+from scipy.interpolate import Rbf
+from numba import jit, prange
+class CustomRBFClassifier:
+    def __init__(self):
+        self.rbfs = None
+
+   
+    def fit(self, points, labels, gammas):
+        """
+        points: shape=(n_points, n_dims)の配列。サンプル点の座標
+        labels: shape=(n_points,)の配列。サンプル点のラベル（-1 または 1）
+        gammas: shape=(n_points,)の配列。各サンプル点に対応するgamma
+        """
+        n_points = len(points)
+        #assert len(labels) == n_points
+        #assert len(gammas) == n_points
+        #assert set(labels) == {-1, 1}, "Labels should be either -1 or 1."
+
+        self.rbfs = []
+        for i in range(n_points):
+            zero_labels = np.zeros(n_points)
+            zero_labels[i] = labels[i]
+            rbf = Rbf(*points.T, zero_labels, epsilon=1.0/gammas[i], function='gaussian')
+            self.rbfs.append(rbf)
+
+ 
+    def predict(self, query_points):
+        """
+        query_points: shape=(n_queries, n_dims)の配列。問い合わせ点の座標
+        """
+       
+
+        scores = np.sum([rbf(*query_points.T) for rbf in self.rbfs], axis=0)
+    
+        return scores
+
+
